@@ -74,3 +74,53 @@ export async function getShortUrl(req, res) {
     return res.sendStatus(500);
   }
 }
+export async function deleteUrl(req, res) {
+  const { user } = res.locals;
+  const urlId = req.params.id;
+  try {
+    const urls = await connection.query(
+      `
+    SELECT *
+    FROM urls
+    JOIN "shortenedUrls" 
+      ON "shortenedUrls"."urlId"=urls.id
+    WHERE urls.id=$1
+    `,
+      [urlId]
+    );
+    if (urls.rowCount === 0) return res.sendStatus(404);
+    if (urls.rows[0].userId !== user.id) return res.sendStatus(401);
+
+    await connection.query(
+      `
+    DELETE  
+    FROM "shortenedUrls"
+    WHERE "urlId"=$1
+    `,
+      [urlId]
+    );
+
+    await connection.query(
+      `
+    DELETE  
+    FROM visits
+    WHERE "urlId"=$1
+    `,
+      [urlId]
+    );
+
+    await connection.query(
+      `
+    DELETE
+    FROM urls
+    WHERE id=$1
+    `,
+      [urlId]
+    );
+
+    res.sendStatus(204);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(500);
+  }
+}
