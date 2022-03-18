@@ -50,3 +50,27 @@ export async function postUrl(req, res) {
     return res.sendStatus(500);
   }
 }
+export async function getShortUrl(req, res) {
+  const { shortUrl } = req.params;
+  try {
+    const shortsUrls = await connection.query(
+      `
+      SELECT 
+      "shortenedUrls".id,
+      "shortenedUrls"."shortUrl",
+      urls.url
+      FROM "shortenedUrls"
+      JOIN urls
+        ON urls.id="shortenedUrls"."urlId"
+      WHERE "shortenedUrls".id=$1
+      `,
+      [shortUrl]
+    );
+    if (shortsUrls.rowCount === 0) return res.sendStatus(404);
+
+    res.status(200).send(shortsUrls.rows);
+  } catch (error) {
+    console.log(error);
+    return res.sendStatus(500);
+  }
+}
