@@ -19,7 +19,24 @@ export async function postUrl(req, res) {
       `,
         [url, user.id]
       );
-      urlId = existingUrls.rows[0].id;
+      const urlResult = await connection.query(
+        `
+      SELECT 
+        urls.id
+      FROM urls
+      WHERE urls.url=$1
+      `,
+        [url]
+      );
+      urlId = urlResult.rows[0].id;
+      await connection.query(
+        `
+      INSERT INTO 
+        visits ("urlId", "visitCount")
+      VALUES  ($1, 0)
+      `,
+        [urlId]
+      );
     } else {
       const urlResult = await connection.query(
         `
@@ -67,6 +84,38 @@ export async function getShortUrl(req, res) {
       [shortUrl]
     );
     if (shortsUrls.rowCount === 0) return res.sendStatus(404);
+
+    /*  const urlId = shortsUrls.fields;
+    console.log(
+      "🚀 ~ file: urlsController.js ~ line 89 ~ getShortUrl ~ urlId",
+      urlId
+    );
+
+    const visitsResult = await connection.query(
+      `
+      SELECT 
+      *
+      FROM visits
+      WHERE "urlId"=$1
+      `,
+      [urlId]
+    );
+
+    console.log(visitsResult.rows);
+    let visits = visitsResult.rows[0].visitCount;
+    visits++;
+
+    await connection.query(
+      `
+        UPDATE visits 
+        SET "visitCount"=$1
+      `,
+      [visits]
+    );
+
+    const response = shortsUrls.map(row=>{
+      const []
+    }) */
 
     res.status(200).send(shortsUrls.rows);
   } catch (error) {

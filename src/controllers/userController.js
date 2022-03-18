@@ -46,20 +46,30 @@ export async function getUserById(req, res) {
   const { id } = req.params;
 
   try {
-    /* const user = await connection.query(
-      `
-    SELECT 
-      *
-    FROM users u
-    JOIN urls ur 
-      ON ur."userId"=u.id
-    JOIN "shortenedUrls" su 
-      ON su."urlId"=ur.id
-    JOIN visits v 
-      ON v."urlId"=ur.id
-    `
-    );
-    res.send(user.rows); */
+    const user = await connection.query({
+      text: `
+      SELECT 
+        *
+      FROM users
+      
+      JOIN urls 
+        ON users.id=urls."userId"
+      
+      JOIN "shortenedUrls"
+        ON urls.id="shortenedUrls"."urlId"
+      
+      JOIN visits
+        ON urls.id=visits."urlId"
+    `,
+      rowMode: "array",
+    });
+    res.send(user);
+    /* res.send(
+      user.rows.map((row) => {
+        let [id, name, visiCount] = row;
+        return { id, name, visiCount };
+      })
+    ); */
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
