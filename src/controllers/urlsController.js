@@ -44,7 +44,7 @@ export async function postUrl(req, res) {
       [shortUrl, urlId]
     );
 
-    res.send({ shortUrl });
+    res.status(201).send({ shortUrl });
   } catch (error) {
     console.log(error);
     return res.sendStatus(500);
